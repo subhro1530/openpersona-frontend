@@ -11,7 +11,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import ThemeSelector from "@/components/ThemeSelector";
+import ThemeSelector, { isBuiltInTheme } from "@/components/ThemeSelector";
 import PersonalPortfolioForm from "@/components/PersonalPortfolioForm";
 import BusinessPortfolioForm from "@/components/BusinessPortfolioForm";
 import { apiFetch } from "@/lib/api";
@@ -45,8 +45,12 @@ function CreateWizard() {
       const body = {
         ...formData,
         category,
-        theme_id: themeId,
       };
+
+      // Only send theme_id if it's a real backend theme (not a built-in one)
+      if (themeId && !isBuiltInTheme(themeId)) {
+        body.theme_id = themeId;
+      }
 
       await apiFetch(PORTFOLIO_ENDPOINTS.CREATE, {
         method: "POST",

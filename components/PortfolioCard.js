@@ -2,58 +2,59 @@
 
 /**
  * PortfolioCard — displays a portfolio summary in the dashboard grid.
+ * BUG FIX: Uses `portfolio.id` (not `_id`) for Edit/Delete.
+ * Uses `portfolio.slug` for public View link.
  */
 
 import Link from "next/link";
-import { ROUTES } from "@/lib/constants";
 import styles from "./PortfolioCard.module.css";
 
 export default function PortfolioCard({ portfolio, onDelete }) {
-  const { _id, title, subtitle, category } = portfolio;
-  const slug =
-    portfolio.slug || portfolio.portfolio_slug || portfolio._id || "";
+  const isPersonal = portfolio.category === "personal";
 
   const handleDelete = () => {
     if (window.confirm("Are you sure you want to delete this portfolio?")) {
-      onDelete(_id);
+      onDelete(portfolio.id); // ← FIX: was `portfolio._id`
     }
   };
 
   return (
-    <div className={styles.card}>
-      <div className={styles.header}>
-        <h3 className={styles.title}>{title}</h3>
-        <span
-          className={`${styles.badge} ${
-            category === "personal" ? styles.personal : styles.business
-          }`}
-        >
-          {category}
+    <div
+      className={`${styles.card} ${isPersonal ? styles.personal : styles.business}`}
+    >
+      <div className={styles.stripe} />
+
+      <div className={styles.body}>
+        <span className={styles.badge}>
+          {isPersonal ? "👤 Personal" : "🏢 Business"}
         </span>
+
+        <h3 className={styles.title}>{portfolio.title || "Untitled"}</h3>
+        <p className={styles.subtitle}>{portfolio.subtitle || "No subtitle"}</p>
+
+        <div className={styles.meta}>
+          <span className={styles.slug}>/{portfolio.slug}</span>
+          <span className={styles.date}>
+            {new Date(portfolio.created_at).toLocaleDateString()}
+          </span>
+        </div>
       </div>
 
-      {subtitle && <p className={styles.subtitle}>{subtitle}</p>}
-
-      <Link
-        href={ROUTES.PUBLIC_PORTFOLIO(slug)}
-        className={styles.slug}
-        target="_blank"
-      >
-        /p/{slug}
-      </Link>
-
       <div className={styles.actions}>
-        <Link href={ROUTES.EDIT_PORTFOLIO(_id)} className={styles.editBtn}>
-          Edit
-        </Link>
         <Link
-          href={ROUTES.PUBLIC_PORTFOLIO(slug)}
-          className={styles.viewBtn}
+          href={`/p/${portfolio.slug}`}
+          className={styles.btnView}
           target="_blank"
         >
           View
         </Link>
-        <button className={styles.deleteBtn} onClick={handleDelete}>
+        <Link
+          href={`/dashboard/edit/${portfolio.id}`} /* ← FIX: was `portfolio._id` */
+          className={styles.btnEdit}
+        >
+          Edit
+        </Link>
+        <button className={styles.btnDelete} onClick={handleDelete}>
           Delete
         </button>
       </div>

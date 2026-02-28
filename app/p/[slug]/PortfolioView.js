@@ -1,280 +1,450 @@
 "use client";
 
 /**
- * PortfolioView — renders a portfolio based on category.
- * Handles both personal and business portfolios.
- * Sanitizes any user-generated content before rendering.
+ * PortfolioView — public portfolio renderer.
+ *
+ * BUG FIX: All category-specific fields live inside `portfolio.data`,
+ * NOT at the top level. Top-level fields are: id, slug, category,
+ * theme_id, title, subtitle, created_at, updated_at, data.
+ *
+ * Renders full sections for Personal and Business portfolios.
  */
 
 import styles from "../portfolio.module.css";
-
-/**
- * Basic HTML entity escaping to prevent XSS in user-generated strings.
- */
-function sanitize(str) {
-  if (typeof str !== "string") return "";
-  return str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-}
 
 export default function PortfolioView({ portfolio, error }) {
   if (error || !portfolio) {
     return (
       <div className={styles.notFound}>
+        <div className={styles.notFoundIcon}>🔍</div>
         <h1 className={styles.notFoundTitle}>Portfolio Not Found</h1>
         <p className={styles.notFoundDesc}>
-          {error || "This portfolio does not exist or has been removed."}
+          {error || "This portfolio does not exist."}
         </p>
+        <a href="/" className={styles.notFoundLink}>
+          ← Back to Home
+        </a>
       </div>
     );
   }
 
   const isPersonal = portfolio.category === "personal";
+  // FIX: read all category-specific fields from portfolio.data
+  const d = portfolio.data || {};
 
   return (
     <div className={styles.page}>
-      {/* Header banner */}
-      <section className={styles.headerSection}>
-        {isPersonal ? (
-          <>
-            <h1 className={styles.name}>{sanitize(portfolio.full_name)}</h1>
-            {portfolio.headline && (
-              <p className={styles.headline}>{sanitize(portfolio.headline)}</p>
-            )}
-          </>
-        ) : (
-          <>
-            <h1 className={styles.businessName}>
-              {sanitize(portfolio.business_name)}
-            </h1>
-            {portfolio.tagline && (
-              <p className={styles.tagline}>{sanitize(portfolio.tagline)}</p>
-            )}
-          </>
-        )}
+      {isPersonal ? (
+        <PersonalView portfolio={portfolio} d={d} />
+      ) : (
+        <BusinessView portfolio={portfolio} d={d} />
+      )}
+    </div>
+  );
+}
+
+/* ===================== PERSONAL PORTFOLIO ===================== */
+
+function PersonalView({ portfolio, d }) {
+  const skills = Array.isArray(d.skills) ? d.skills : parseList(d.skills);
+  const hasContact =
+    d.contact_email || d.linkedin_url || d.github_url || d.twitter_url;
+
+  return (
+    <>
+      {/* Hero */}
+      <section className={styles.hero}>
+        <div className={styles.heroGlow} />
+        <div className={styles.heroInner}>
+          <div className={styles.avatar}>
+            {(d.full_name || "?").charAt(0).toUpperCase()}
+          </div>
+          <h1 className={styles.heroTitle}>{d.full_name || portfolio.title}</h1>
+          {(d.headline || portfolio.subtitle) && (
+            <p className={styles.heroSub}>{d.headline || portfolio.subtitle}</p>
+          )}
+          {hasContact && (
+            <div className={styles.heroLinks}>
+              {d.linkedin_url && (
+                <a
+                  href={d.linkedin_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.socialLink}
+                >
+                  LinkedIn
+                </a>
+              )}
+              {d.github_url && (
+                <a
+                  href={d.github_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.socialLink}
+                >
+                  GitHub
+                </a>
+              )}
+              {d.twitter_url && (
+                <a
+                  href={d.twitter_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.socialLink}
+                >
+                  Twitter
+                </a>
+              )}
+              {d.contact_email && (
+                <a
+                  href={`mailto:${d.contact_email}`}
+                  className={styles.socialLink}
+                >
+                  Email
+                </a>
+              )}
+            </div>
+          )}
+        </div>
       </section>
 
-      {/* Content cards */}
-      <div className={styles.content}>
-        {isPersonal ? (
-          <PersonalView portfolio={portfolio} />
+      {/* About */}
+      {d.about && (
+        <section className={styles.section}>
+          <div className={styles.sectionInner}>
+            <h2 className={styles.sectionTitle}>About</h2>
+            <p className={styles.text}>{d.about}</p>
+          </div>
+        </section>
+      )}
+
+      {/* Skills */}
+      {skills.length > 0 && (
+        <section className={`${styles.section} ${styles.sectionAlt}`}>
+          <div className={styles.sectionInner}>
+            <h2 className={styles.sectionTitle}>Skills</h2>
+            <div className={styles.tags}>
+              {skills.map((s, i) => (
+                <span key={i} className={styles.tag}>
+                  {s}
+                </span>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Experience */}
+      {d.experience &&
+        (Array.isArray(d.experience) ? d.experience.length > 0 : true) && (
+          <section className={styles.section}>
+            <div className={styles.sectionInner}>
+              <h2 className={styles.sectionTitle}>Experience</h2>
+              <div className={styles.timeline}>
+                {Array.isArray(d.experience)
+                  ? d.experience.map((exp, i) => (
+                      <div key={i} className={styles.timelineItem}>
+                        <div className={styles.timelineDot} />
+                        <div>
+                          {exp.title && <strong>{exp.title}</strong>}
+                          {exp.company && <span> at {exp.company}</span>}
+                          {(exp.start_date || exp.end_date) && (
+                            <div className={styles.timelineMeta}>
+                              {exp.start_date}
+                              {exp.end_date ? ` — ${exp.end_date}` : ""}
+                            </div>
+                          )}
+                          {exp.description && (
+                            <p className={styles.text}>{exp.description}</p>
+                          )}
+                        </div>
+                      </div>
+                    ))
+                  : parseBlocks(d.experience).map((block, i) => (
+                      <div key={i} className={styles.timelineItem}>
+                        <div className={styles.timelineDot} />
+                        <p className={styles.text}>{block}</p>
+                      </div>
+                    ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+      {/* Education */}
+      {d.education &&
+        (Array.isArray(d.education) ? d.education.length > 0 : true) && (
+          <section className={`${styles.section} ${styles.sectionAlt}`}>
+            <div className={styles.sectionInner}>
+              <h2 className={styles.sectionTitle}>Education</h2>
+              <div className={styles.timeline}>
+                {Array.isArray(d.education)
+                  ? d.education.map((edu, i) => (
+                      <div key={i} className={styles.timelineItem}>
+                        <div className={styles.timelineDot} />
+                        <div>
+                          {edu.degree && <strong>{edu.degree}</strong>}
+                          {edu.institution && <span> — {edu.institution}</span>}
+                          {(edu.start_date || edu.end_date) && (
+                            <div className={styles.timelineMeta}>
+                              {edu.start_date}
+                              {edu.end_date ? ` — ${edu.end_date}` : ""}
+                            </div>
+                          )}
+                          {edu.description && (
+                            <p className={styles.text}>{edu.description}</p>
+                          )}
+                        </div>
+                      </div>
+                    ))
+                  : parseBlocks(d.education).map((block, i) => (
+                      <div key={i} className={styles.timelineItem}>
+                        <div className={styles.timelineDot} />
+                        <p className={styles.text}>{block}</p>
+                      </div>
+                    ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+      {/* Contact */}
+      {hasContact && (
+        <section className={styles.section}>
+          <div className={styles.sectionInner}>
+            <h2 className={styles.sectionTitle}>Get in Touch</h2>
+            <div className={styles.contactGrid}>
+              {d.contact_email && (
+                <ContactItem
+                  icon="✉️"
+                  label="Email"
+                  value={d.contact_email}
+                  href={`mailto:${d.contact_email}`}
+                />
+              )}
+              {d.linkedin_url && (
+                <ContactItem
+                  icon="🔗"
+                  label="LinkedIn"
+                  value="Profile"
+                  href={d.linkedin_url}
+                />
+              )}
+              {d.github_url && (
+                <ContactItem
+                  icon="💻"
+                  label="GitHub"
+                  value="Profile"
+                  href={d.github_url}
+                />
+              )}
+              {d.twitter_url && (
+                <ContactItem
+                  icon="🐦"
+                  label="Twitter"
+                  value="Profile"
+                  href={d.twitter_url}
+                />
+              )}
+            </div>
+          </div>
+        </section>
+      )}
+
+      <Footer slug={portfolio.slug} />
+    </>
+  );
+}
+
+/* ===================== BUSINESS PORTFOLIO ===================== */
+
+function BusinessView({ portfolio, d }) {
+  const services = Array.isArray(d.services)
+    ? d.services
+    : parseList(d.services);
+  const hasContact = d.contact_email || d.phone || d.website || d.location;
+
+  return (
+    <>
+      {/* Hero */}
+      <section className={`${styles.hero} ${styles.heroBusiness}`}>
+        <div className={styles.heroGlow} />
+        <div className={styles.heroInner}>
+          <span className={styles.heroBadge}>Business</span>
+          <h1 className={styles.heroTitle}>
+            {d.business_name || portfolio.title}
+          </h1>
+          {(d.tagline || portfolio.subtitle) && (
+            <p className={styles.heroSub}>{d.tagline || portfolio.subtitle}</p>
+          )}
+          {d.website && (
+            <a
+              href={d.website}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.heroWebsite}
+            >
+              Visit Website →
+            </a>
+          )}
+        </div>
+      </section>
+
+      {/* About */}
+      {d.description && (
+        <section className={styles.section}>
+          <div className={styles.sectionInner}>
+            <h2 className={styles.sectionTitle}>About Us</h2>
+            <p className={styles.text}>{d.description}</p>
+          </div>
+        </section>
+      )}
+
+      {/* Services */}
+      {services.length > 0 && (
+        <section className={`${styles.section} ${styles.sectionAlt}`}>
+          <div className={styles.sectionInner}>
+            <h2 className={styles.sectionTitle}>Services</h2>
+            <div className={styles.serviceGrid}>
+              {services.map((s, i) => (
+                <div key={i} className={styles.serviceCard}>
+                  <div className={styles.serviceIcon}>✦</div>
+                  <p className={styles.serviceName}>{s}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Testimonials */}
+      {d.testimonials &&
+        (Array.isArray(d.testimonials) ? d.testimonials.length > 0 : true) && (
+          <section className={styles.section}>
+            <div className={styles.sectionInner}>
+              <h2 className={styles.sectionTitle}>Testimonials</h2>
+              <div className={styles.testimonialGrid}>
+                {Array.isArray(d.testimonials)
+                  ? d.testimonials.map((t, i) => (
+                      <blockquote key={i} className={styles.testimonialCard}>
+                        <p className={styles.testimonialText}>
+                          &ldquo;{t.quote || t}&rdquo;
+                        </p>
+                        {(t.name || t.role) && (
+                          <footer className={styles.testimonialAuthor}>
+                            {t.name && <strong>{t.name}</strong>}
+                            {t.role && <span> — {t.role}</span>}
+                          </footer>
+                        )}
+                      </blockquote>
+                    ))
+                  : parseBlocks(d.testimonials).map((t, i) => (
+                      <blockquote key={i} className={styles.testimonialCard}>
+                        <p className={styles.testimonialText}>
+                          &ldquo;{t}&rdquo;
+                        </p>
+                      </blockquote>
+                    ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+      {/* Contact */}
+      {hasContact && (
+        <section className={`${styles.section} ${styles.sectionAlt}`}>
+          <div className={styles.sectionInner}>
+            <h2 className={styles.sectionTitle}>Contact</h2>
+            <div className={styles.contactGrid}>
+              {d.contact_email && (
+                <ContactItem
+                  icon="✉️"
+                  label="Email"
+                  value={d.contact_email}
+                  href={`mailto:${d.contact_email}`}
+                />
+              )}
+              {d.phone && (
+                <ContactItem
+                  icon="📞"
+                  label="Phone"
+                  value={d.phone}
+                  href={`tel:${d.phone}`}
+                />
+              )}
+              {d.website && (
+                <ContactItem
+                  icon="🌐"
+                  label="Website"
+                  value={d.website}
+                  href={d.website}
+                />
+              )}
+              {d.location && (
+                <ContactItem icon="📍" label="Location" value={d.location} />
+              )}
+            </div>
+          </div>
+        </section>
+      )}
+
+      <Footer slug={portfolio.slug} />
+    </>
+  );
+}
+
+/* ===================== SHARED HELPERS ===================== */
+
+function ContactItem({ icon, label, value, href }) {
+  return (
+    <div className={styles.contactItem}>
+      <span className={styles.contactIcon}>{icon}</span>
+      <div>
+        <span className={styles.contactLabel}>{label}</span>
+        {href ? (
+          <a
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.contactValue}
+          >
+            {value}
+          </a>
         ) : (
-          <BusinessView portfolio={portfolio} />
+          <span className={styles.contactValue}>{value}</span>
         )}
       </div>
     </div>
   );
 }
 
-/* ============================================= */
-/*  Personal portfolio sections                   */
-/* ============================================= */
-function PersonalView({ portfolio }) {
+function Footer({ slug }) {
   return (
-    <>
-      {/* About */}
-      {portfolio.about && (
-        <div className={styles.card}>
-          <h2 className={styles.cardTitle}>📝 About</h2>
-          <p className={styles.about}>{sanitize(portfolio.about)}</p>
-        </div>
-      )}
-
-      {/* Skills */}
-      {portfolio.skills?.length > 0 && (
-        <div className={styles.card}>
-          <h2 className={styles.cardTitle}>🛠️ Skills</h2>
-          <div className={styles.skills}>
-            {portfolio.skills.map((skill, i) => (
-              <span key={i} className={styles.skill}>
-                {sanitize(skill)}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Experience */}
-      {portfolio.experience?.length > 0 && (
-        <div className={styles.card}>
-          <h2 className={styles.cardTitle}>💼 Experience</h2>
-          {portfolio.experience.map((exp, i) => (
-            <div key={i} className={styles.experienceItem}>
-              <p className={styles.expRole}>{sanitize(exp.role)}</p>
-              <p className={styles.expCompany}>{sanitize(exp.company)}</p>
-              <p className={styles.expDates}>
-                {sanitize(exp.from)} — {sanitize(exp.to)}
-              </p>
-              {exp.description && (
-                <p className={styles.expDesc}>{sanitize(exp.description)}</p>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Education */}
-      {portfolio.education?.length > 0 && (
-        <div className={styles.card}>
-          <h2 className={styles.cardTitle}>🎓 Education</h2>
-          {portfolio.education.map((edu, i) => (
-            <div key={i} className={styles.educationItem}>
-              <p className={styles.eduDegree}>{sanitize(edu.degree)}</p>
-              <p className={styles.eduInstitution}>
-                {sanitize(edu.institution)}
-              </p>
-              <p className={styles.eduYear}>{sanitize(edu.year)}</p>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Contact */}
-      <div className={styles.card}>
-        <h2 className={styles.cardTitle}>🔗 Contact</h2>
-        <div className={styles.contactLinks}>
-          {portfolio.contact_email && (
-            <a
-              href={`mailto:${sanitize(portfolio.contact_email)}`}
-              className={styles.contactLink}
-            >
-              ✉️ {sanitize(portfolio.contact_email)}
-            </a>
-          )}
-          {portfolio.linkedin_url && (
-            <a
-              href={sanitize(portfolio.linkedin_url)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={styles.contactLink}
-            >
-              💼 LinkedIn
-            </a>
-          )}
-          {portfolio.github_url && (
-            <a
-              href={sanitize(portfolio.github_url)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={styles.contactLink}
-            >
-              🐙 GitHub
-            </a>
-          )}
-          {portfolio.twitter_url && (
-            <a
-              href={sanitize(portfolio.twitter_url)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={styles.contactLink}
-            >
-              🐦 Twitter
-            </a>
-          )}
-        </div>
-      </div>
-    </>
+    <footer className={styles.portfolioFooter}>
+      <p>
+        Built with{" "}
+        <a href="/" className={styles.footerBrand}>
+          OpenPersona
+        </a>
+      </p>
+    </footer>
   );
 }
 
-/* ============================================= */
-/*  Business portfolio sections                   */
-/* ============================================= */
-function BusinessView({ portfolio }) {
-  return (
-    <>
-      {/* Description */}
-      {portfolio.description && (
-        <div className={styles.card}>
-          <h2 className={styles.cardTitle}>📝 About Us</h2>
-          <p className={styles.description}>
-            {sanitize(portfolio.description)}
-          </p>
-        </div>
-      )}
+/** Parse comma-separated or newline-separated string into an array of trimmed strings */
+function parseList(str) {
+  if (!str) return [];
+  return str
+    .split(/[,\n]/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
 
-      {/* Services */}
-      {portfolio.services?.length > 0 && (
-        <div className={styles.card}>
-          <h2 className={styles.cardTitle}>🛎️ Services</h2>
-          <div className={styles.servicesGrid}>
-            {portfolio.services.map((svc, i) => (
-              <div key={i} className={styles.serviceCard}>
-                <h3 className={styles.serviceName}>{sanitize(svc.name)}</h3>
-                {svc.description && (
-                  <p className={styles.serviceDesc}>
-                    {sanitize(svc.description)}
-                  </p>
-                )}
-                {svc.price && (
-                  <p className={styles.servicePrice}>{sanitize(svc.price)}</p>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Testimonials */}
-      {portfolio.testimonials?.length > 0 && (
-        <div className={styles.card}>
-          <h2 className={styles.cardTitle}>⭐ Testimonials</h2>
-          {portfolio.testimonials.map((t, i) => (
-            <div key={i} className={styles.testimonialItem}>
-              <p className={styles.testimonialText}>
-                &ldquo;{sanitize(t.text)}&rdquo;
-              </p>
-              <p className={styles.testimonialAuthor}>{sanitize(t.author)}</p>
-              {t.role && (
-                <p className={styles.testimonialRole}>{sanitize(t.role)}</p>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Contact */}
-      <div className={styles.card}>
-        <h2 className={styles.cardTitle}>📞 Contact</h2>
-        <div className={styles.contactInfo}>
-          {portfolio.contact_email && (
-            <div className={styles.contactRow}>
-              <span className={styles.contactLabel}>Email</span>
-              <a href={`mailto:${sanitize(portfolio.contact_email)}`}>
-                {sanitize(portfolio.contact_email)}
-              </a>
-            </div>
-          )}
-          {portfolio.phone && (
-            <div className={styles.contactRow}>
-              <span className={styles.contactLabel}>Phone</span>
-              <span>{sanitize(portfolio.phone)}</span>
-            </div>
-          )}
-          {portfolio.website && (
-            <div className={styles.contactRow}>
-              <span className={styles.contactLabel}>Website</span>
-              <a
-                href={sanitize(portfolio.website)}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {sanitize(portfolio.website)}
-              </a>
-            </div>
-          )}
-          {portfolio.location && (
-            <div className={styles.contactRow}>
-              <span className={styles.contactLabel}>Location</span>
-              <span>{sanitize(portfolio.location)}</span>
-            </div>
-          )}
-        </div>
-      </div>
-    </>
-  );
+/** Parse newline-separated string into paragraphs / blocks */
+function parseBlocks(str) {
+  if (!str) return [];
+  return str
+    .split(/\n\n|\n/)
+    .map((s) => s.trim())
+    .filter(Boolean);
 }

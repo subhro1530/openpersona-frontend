@@ -1,10 +1,5 @@
 "use client";
 
-/**
- * ClientProviders — wraps the app with all client-side context providers.
- * Separated from layout.js so the root layout can remain a server component.
- */
-
 import { AuthProvider } from "@/context/AuthContext";
 import { ToastProvider } from "@/components/Toast";
 import Navbar from "@/components/Navbar";

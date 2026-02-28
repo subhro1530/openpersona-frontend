@@ -1,461 +1,511 @@
 "use client";
 
 /**
- * PersonalPortfolioForm — form fields for a "personal" portfolio.
- * Handles skills (tag list), experience (dynamic list), and education.
+ * PersonalPortfolioForm — form fields for personal portfolios.
+ *
+ * Backend expects:
+ *   skills      → string[]           e.g. ["React","Node.js"]
+ *   experience  → object[]           e.g. [{title,company,start_date,end_date,description}]
+ *   education   → object[]           e.g. [{degree,institution,start_date,end_date,description}]
+ *
+ * Has dynamic + buttons to add entries, and × to remove them.
  */
 
 import { useState } from "react";
 import styles from "./Form.module.css";
 
-const EMPTY_EXPERIENCE = {
+const EMPTY_EXP = {
+  title: "",
   company: "",
-  role: "",
-  from: "",
-  to: "",
+  start_date: "",
+  end_date: "",
   description: "",
 };
-const EMPTY_EDUCATION = { institution: "", degree: "", year: "" };
+const EMPTY_EDU = {
+  degree: "",
+  institution: "",
+  start_date: "",
+  end_date: "",
+  description: "",
+};
+
+function initForm(initialData) {
+  const d = initialData || {};
+  return {
+    title: d.title || "",
+    subtitle: d.subtitle || "",
+    slug: d.slug || "",
+    full_name: d.full_name || "",
+    headline: d.headline || "",
+    about: d.about || "",
+    contact_email: d.contact_email || "",
+    linkedin_url: d.linkedin_url || "",
+    github_url: d.github_url || "",
+    twitter_url: d.twitter_url || "",
+  };
+}
+
+function initSkills(initialData) {
+  const s = initialData?.skills;
+  if (Array.isArray(s)) return s;
+  if (typeof s === "string" && s.trim())
+    return s
+      .split(",")
+      .map((x) => x.trim())
+      .filter(Boolean);
+  return [];
+}
+
+function initArr(initialData, key, empty) {
+  const a = initialData?.[key];
+  if (Array.isArray(a) && a.length)
+    return a.map((item) => ({ ...empty, ...item }));
+  return [];
+}
 
 export default function PersonalPortfolioForm({
   initialData,
   onSubmit,
   submitting,
 }) {
-  const [form, setForm] = useState({
-    title: "",
-    subtitle: "",
-    full_name: "",
-    headline: "",
-    about: "",
-    skills: [],
-    experience: [{ ...EMPTY_EXPERIENCE }],
-    education: [{ ...EMPTY_EDUCATION }],
-    contact_email: "",
-    linkedin_url: "",
-    github_url: "",
-    twitter_url: "",
-    ...initialData,
-  });
-
+  const [form, setForm] = useState(() => initForm(initialData));
+  const [skills, setSkills] = useState(() => initSkills(initialData));
   const [skillInput, setSkillInput] = useState("");
+  const [experience, setExperience] = useState(() =>
+    initArr(initialData, "experience", EMPTY_EXP),
+  );
+  const [education, setEducation] = useState(() =>
+    initArr(initialData, "education", EMPTY_EDU),
+  );
   const [errors, setErrors] = useState({});
 
-  /** Simple field change handler */
-  const handleChange = (e) => {
+  const onChange = (e) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
+    setForm((p) => ({ ...p, [name]: value }));
+    if (errors[name]) setErrors((p) => ({ ...p, [name]: "" }));
   };
 
-  /* ----- Skills ----- */
+  /* ---- Skills ---- */
   const addSkill = () => {
-    const trimmed = skillInput.trim();
-    if (trimmed && !form.skills.includes(trimmed)) {
-      setForm((prev) => ({ ...prev, skills: [...prev.skills, trimmed] }));
-    }
+    const s = skillInput.trim();
+    if (s && !skills.includes(s)) setSkills((p) => [...p, s]);
     setSkillInput("");
   };
-
-  const removeSkill = (idx) => {
-    setForm((prev) => ({
-      ...prev,
-      skills: prev.skills.filter((_, i) => i !== idx),
-    }));
-  };
-
-  const handleSkillKeyDown = (e) => {
-    if (e.key === "Enter") {
+  const removeSkill = (i) => setSkills((p) => p.filter((_, idx) => idx !== i));
+  const handleSkillKey = (e) => {
+    if (e.key === "Enter" || e.key === ",") {
       e.preventDefault();
       addSkill();
     }
   };
 
-  /* ----- Dynamic list helpers ----- */
-  const updateListItem = (listKey, idx, field, value) => {
-    setForm((prev) => ({
-      ...prev,
-      [listKey]: prev[listKey].map((item, i) =>
-        i === idx ? { ...item, [field]: value } : item,
-      ),
-    }));
-  };
+  /* ---- Experience ---- */
+  const addExp = () => setExperience((p) => [...p, { ...EMPTY_EXP }]);
+  const removeExp = (i) =>
+    setExperience((p) => p.filter((_, idx) => idx !== i));
+  const updateExp = (i, field, value) =>
+    setExperience((p) =>
+      p.map((item, idx) => (idx === i ? { ...item, [field]: value } : item)),
+    );
 
-  const addListItem = (listKey, empty) => {
-    setForm((prev) => ({
-      ...prev,
-      [listKey]: [...prev[listKey], { ...empty }],
-    }));
-  };
+  /* ---- Education ---- */
+  const addEdu = () => setEducation((p) => [...p, { ...EMPTY_EDU }]);
+  const removeEdu = (i) => setEducation((p) => p.filter((_, idx) => idx !== i));
+  const updateEdu = (i, field, value) =>
+    setEducation((p) =>
+      p.map((item, idx) => (idx === i ? { ...item, [field]: value } : item)),
+    );
 
-  const removeListItem = (listKey, idx) => {
-    setForm((prev) => ({
-      ...prev,
-      [listKey]: prev[listKey].filter((_, i) => i !== idx),
-    }));
-  };
-
-  /* ----- Validation ----- */
+  /* ---- Validate ---- */
   const validate = () => {
-    const errs = {};
-    if (!form.title.trim()) errs.title = "Title is required";
-    if (!form.full_name.trim()) errs.full_name = "Full name is required";
-    if (!form.headline.trim()) errs.headline = "Headline is required";
-    if (!form.contact_email.trim())
-      errs.contact_email = "Contact email is required";
-    setErrors(errs);
-    return Object.keys(errs).length === 0;
+    const e = {};
+    if (!form.title.trim()) e.title = "Title is required";
+    if (!form.full_name.trim()) e.full_name = "Full name is required";
+    if (!form.slug.trim()) e.slug = "Slug is required";
+    else if (!/^[a-z0-9-]+$/.test(form.slug))
+      e.slug = "Slug can only contain lowercase letters, numbers, and hyphens";
+    setErrors(e);
+    return Object.keys(e).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  /* ---- Submit ---- */
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
-    onSubmit(form);
+    try {
+      await onSubmit({
+        ...form,
+        skills,
+        experience: experience.filter((x) => x.title || x.company),
+        education: education.filter((x) => x.degree || x.institution),
+      });
+    } catch (err) {
+      const fieldErrors = err?.data?.errors;
+      if (Array.isArray(fieldErrors)) {
+        const mapped = {};
+        fieldErrors.forEach((fe) => {
+          if (fe.field) mapped[fe.field] = fe.message;
+        });
+        if (Object.keys(mapped).length) setErrors(mapped);
+      }
+    }
   };
 
   return (
     <form className={styles.form} onSubmit={handleSubmit}>
-      {/* Basic info */}
+      {/* ---- Basic Info ---- */}
       <div className={styles.section}>
         <h3 className={styles.sectionTitle}>📋 Basic Info</h3>
         <div className={styles.row}>
-          <div className={styles.field}>
-            <label className={styles.label}>Portfolio Title *</label>
-            <input
-              className={`${styles.input} ${errors.title ? styles.inputError : ""}`}
-              name="title"
-              value={form.title}
-              onChange={handleChange}
-              placeholder="My Portfolio"
-            />
-            {errors.title && (
-              <span className={styles.errorText}>{errors.title}</span>
-            )}
-          </div>
-          <div className={styles.field}>
-            <label className={styles.label}>Subtitle</label>
-            <input
-              className={styles.input}
-              name="subtitle"
-              value={form.subtitle}
-              onChange={handleChange}
-              placeholder="A short tagline"
-            />
-          </div>
+          <Field
+            label="Portfolio Title *"
+            name="title"
+            value={form.title}
+            onChange={onChange}
+            error={errors.title}
+          />
+          <Field
+            label="Subtitle"
+            name="subtitle"
+            value={form.subtitle}
+            onChange={onChange}
+          />
         </div>
+        <Field
+          label="Slug *"
+          name="slug"
+          value={form.slug}
+          onChange={onChange}
+          error={errors.slug}
+          hint="URL-friendly (e.g. jane-doe)"
+        />
       </div>
 
-      {/* Personal details */}
+      {/* ---- Personal Details ---- */}
       <div className={styles.section}>
         <h3 className={styles.sectionTitle}>👤 Personal Details</h3>
         <div className={styles.row}>
-          <div className={styles.field}>
-            <label className={styles.label}>Full Name *</label>
-            <input
-              className={`${styles.input} ${errors.full_name ? styles.inputError : ""}`}
-              name="full_name"
-              value={form.full_name}
-              onChange={handleChange}
-              placeholder="Jane Doe"
-            />
-            {errors.full_name && (
-              <span className={styles.errorText}>{errors.full_name}</span>
-            )}
-          </div>
-          <div className={styles.field}>
-            <label className={styles.label}>Headline *</label>
-            <input
-              className={`${styles.input} ${errors.headline ? styles.inputError : ""}`}
-              name="headline"
-              value={form.headline}
-              onChange={handleChange}
-              placeholder="Full Stack Developer"
-            />
-            {errors.headline && (
-              <span className={styles.errorText}>{errors.headline}</span>
-            )}
-          </div>
-        </div>
-        <div className={styles.field}>
-          <label className={styles.label}>About</label>
-          <textarea
-            className={styles.textarea}
-            name="about"
-            value={form.about}
-            onChange={handleChange}
-            placeholder="Tell visitors about yourself…"
-            rows={4}
+          <Field
+            label="Full Name *"
+            name="full_name"
+            value={form.full_name}
+            onChange={onChange}
+            error={errors.full_name}
+          />
+          <Field
+            label="Headline"
+            name="headline"
+            value={form.headline}
+            onChange={onChange}
+            placeholder="e.g. Full-Stack Developer"
           />
         </div>
+        <FieldTextarea
+          label="About"
+          name="about"
+          value={form.about}
+          onChange={onChange}
+          rows={4}
+          placeholder="Tell your story…"
+        />
       </div>
 
-      {/* Skills */}
+      {/* ---- Skills (tags) ---- */}
       <div className={styles.section}>
-        <h3 className={styles.sectionTitle}>🛠️ Skills</h3>
-        <div
-          style={{ display: "flex", gap: "0.5rem", marginBottom: "0.75rem" }}
-        >
+        <div className={styles.sectionHeader}>
+          <h3 className={styles.sectionTitle}>🛠️ Skills</h3>
+          <span className={styles.sectionCount}>{skills.length} added</span>
+        </div>
+        <div className={styles.tagInputRow}>
           <input
             className={styles.input}
             value={skillInput}
             onChange={(e) => setSkillInput(e.target.value)}
-            onKeyDown={handleSkillKeyDown}
+            onKeyDown={handleSkillKey}
             placeholder="Type a skill and press Enter"
-            style={{ flex: 1 }}
           />
-          <button type="button" className={styles.addBtn} onClick={addSkill}>
+          <button
+            type="button"
+            className={styles.addBtnSmall}
+            onClick={addSkill}
+          >
             + Add
           </button>
         </div>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
-          {form.skills.map((skill, idx) => (
-            <span
-              key={idx}
-              style={{
-                padding: "0.25rem 0.7rem",
-                background: "rgba(79,70,229,0.1)",
-                color: "var(--color-primary)",
-                borderRadius: "9999px",
-                fontSize: "0.82rem",
-                fontWeight: 600,
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "0.35rem",
-              }}
+        {skills.length > 0 && (
+          <div className={styles.tags}>
+            {skills.map((s, i) => (
+              <span key={i} className={styles.tag}>
+                {s}
+                <button
+                  type="button"
+                  className={styles.tagRemove}
+                  onClick={() => removeSkill(i)}
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* ---- Experience (dynamic cards) ---- */}
+      <div className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <h3 className={styles.sectionTitle}>💼 Experience</h3>
+          <button type="button" className={styles.addBtn} onClick={addExp}>
+            + Add Experience
+          </button>
+        </div>
+        {experience.length === 0 && (
+          <p className={styles.emptyHint}>
+            No experience added yet. Click the button above to add one.
+          </p>
+        )}
+        {experience.map((exp, i) => (
+          <div key={i} className={styles.dynamicCard}>
+            <button
+              type="button"
+              className={styles.cardRemove}
+              onClick={() => removeExp(i)}
+              title="Remove"
             >
-              {skill}
-              <button
-                type="button"
-                onClick={() => removeSkill(idx)}
-                style={{
-                  background: "none",
-                  border: "none",
-                  color: "var(--color-error)",
-                  cursor: "pointer",
-                  fontSize: "0.9rem",
-                  lineHeight: 1,
-                  padding: 0,
-                }}
-              >
-                ×
-              </button>
-            </span>
-          ))}
-        </div>
-      </div>
-
-      {/* Experience */}
-      <div className={styles.section}>
-        <h3 className={styles.sectionTitle}>💼 Experience</h3>
-        {form.experience.map((exp, idx) => (
-          <div key={idx} className={styles.listItem}>
-            {form.experience.length > 1 && (
-              <button
-                type="button"
-                className={styles.removeBtn}
-                onClick={() => removeListItem("experience", idx)}
-              >
-                ×
-              </button>
-            )}
+              ×
+            </button>
+            <div className={styles.cardLabel}>Experience {i + 1}</div>
             <div className={styles.row}>
-              <div className={styles.field}>
-                <label className={styles.label}>Company</label>
-                <input
-                  className={styles.input}
-                  value={exp.company}
-                  onChange={(e) =>
-                    updateListItem("experience", idx, "company", e.target.value)
-                  }
-                  placeholder="Acme Corp"
-                />
-              </div>
-              <div className={styles.field}>
-                <label className={styles.label}>Role</label>
-                <input
-                  className={styles.input}
-                  value={exp.role}
-                  onChange={(e) =>
-                    updateListItem("experience", idx, "role", e.target.value)
-                  }
-                  placeholder="Senior Developer"
-                />
-              </div>
-            </div>
-            <div className={styles.row}>
-              <div className={styles.field}>
-                <label className={styles.label}>From</label>
-                <input
-                  className={styles.input}
-                  value={exp.from}
-                  onChange={(e) =>
-                    updateListItem("experience", idx, "from", e.target.value)
-                  }
-                  placeholder="Jan 2020"
-                />
-              </div>
-              <div className={styles.field}>
-                <label className={styles.label}>To</label>
-                <input
-                  className={styles.input}
-                  value={exp.to}
-                  onChange={(e) =>
-                    updateListItem("experience", idx, "to", e.target.value)
-                  }
-                  placeholder="Present"
-                />
-              </div>
-            </div>
-            <div className={styles.field}>
-              <label className={styles.label}>Description</label>
-              <textarea
-                className={styles.textarea}
-                value={exp.description}
-                onChange={(e) =>
-                  updateListItem(
-                    "experience",
-                    idx,
-                    "description",
-                    e.target.value,
-                  )
-                }
-                placeholder="What did you do?"
-                rows={2}
+              <MiniField
+                label="Job Title"
+                value={exp.title}
+                onChange={(v) => updateExp(i, "title", v)}
+                placeholder="e.g. Software Engineer"
+              />
+              <MiniField
+                label="Company"
+                value={exp.company}
+                onChange={(v) => updateExp(i, "company", v)}
+                placeholder="e.g. Google"
               />
             </div>
-          </div>
-        ))}
-        <button
-          type="button"
-          className={styles.addBtn}
-          onClick={() => addListItem("experience", EMPTY_EXPERIENCE)}
-        >
-          + Add Experience
-        </button>
-      </div>
-
-      {/* Education */}
-      <div className={styles.section}>
-        <h3 className={styles.sectionTitle}>🎓 Education</h3>
-        {form.education.map((edu, idx) => (
-          <div key={idx} className={styles.listItem}>
-            {form.education.length > 1 && (
-              <button
-                type="button"
-                className={styles.removeBtn}
-                onClick={() => removeListItem("education", idx)}
-              >
-                ×
-              </button>
-            )}
             <div className={styles.row}>
-              <div className={styles.field}>
-                <label className={styles.label}>Institution</label>
-                <input
-                  className={styles.input}
-                  value={edu.institution}
-                  onChange={(e) =>
-                    updateListItem(
-                      "education",
-                      idx,
-                      "institution",
-                      e.target.value,
-                    )
-                  }
-                  placeholder="MIT"
-                />
-              </div>
-              <div className={styles.field}>
-                <label className={styles.label}>Degree</label>
-                <input
-                  className={styles.input}
-                  value={edu.degree}
-                  onChange={(e) =>
-                    updateListItem("education", idx, "degree", e.target.value)
-                  }
-                  placeholder="B.S. Computer Science"
-                />
-              </div>
-            </div>
-            <div className={styles.field}>
-              <label className={styles.label}>Year</label>
-              <input
-                className={styles.input}
-                value={edu.year}
-                onChange={(e) =>
-                  updateListItem("education", idx, "year", e.target.value)
-                }
-                placeholder="2020"
-                style={{ maxWidth: "200px" }}
+              <MiniField
+                label="Start Date"
+                value={exp.start_date}
+                onChange={(v) => updateExp(i, "start_date", v)}
+                placeholder="e.g. Jan 2022"
+              />
+              <MiniField
+                label="End Date"
+                value={exp.end_date}
+                onChange={(v) => updateExp(i, "end_date", v)}
+                placeholder="Present"
               />
             </div>
+            <MiniTextarea
+              label="Description"
+              value={exp.description}
+              onChange={(v) => updateExp(i, "description", v)}
+              rows={2}
+            />
           </div>
         ))}
-        <button
-          type="button"
-          className={styles.addBtn}
-          onClick={() => addListItem("education", EMPTY_EDUCATION)}
-        >
-          + Add Education
-        </button>
       </div>
 
-      {/* Contact & Social */}
+      {/* ---- Education (dynamic cards) ---- */}
       <div className={styles.section}>
-        <h3 className={styles.sectionTitle}>🔗 Contact & Social</h3>
-        <div className={styles.row}>
-          <div className={styles.field}>
-            <label className={styles.label}>Contact Email *</label>
-            <input
-              className={`${styles.input} ${errors.contact_email ? styles.inputError : ""}`}
-              name="contact_email"
-              type="email"
-              value={form.contact_email}
-              onChange={handleChange}
-              placeholder="jane@example.com"
-            />
-            {errors.contact_email && (
-              <span className={styles.errorText}>{errors.contact_email}</span>
-            )}
-          </div>
-          <div className={styles.field}>
-            <label className={styles.label}>LinkedIn URL</label>
-            <input
-              className={styles.input}
-              name="linkedin_url"
-              value={form.linkedin_url}
-              onChange={handleChange}
-              placeholder="https://linkedin.com/in/jane"
-            />
-          </div>
+        <div className={styles.sectionHeader}>
+          <h3 className={styles.sectionTitle}>🎓 Education</h3>
+          <button type="button" className={styles.addBtn} onClick={addEdu}>
+            + Add Education
+          </button>
         </div>
+        {education.length === 0 && (
+          <p className={styles.emptyHint}>
+            No education added yet. Click the button above to add one.
+          </p>
+        )}
+        {education.map((edu, i) => (
+          <div key={i} className={styles.dynamicCard}>
+            <button
+              type="button"
+              className={styles.cardRemove}
+              onClick={() => removeEdu(i)}
+              title="Remove"
+            >
+              ×
+            </button>
+            <div className={styles.cardLabel}>Education {i + 1}</div>
+            <div className={styles.row}>
+              <MiniField
+                label="Degree / Certificate"
+                value={edu.degree}
+                onChange={(v) => updateEdu(i, "degree", v)}
+                placeholder="e.g. B.Sc. Computer Science"
+              />
+              <MiniField
+                label="Institution"
+                value={edu.institution}
+                onChange={(v) => updateEdu(i, "institution", v)}
+                placeholder="e.g. MIT"
+              />
+            </div>
+            <div className={styles.row}>
+              <MiniField
+                label="Start Date"
+                value={edu.start_date}
+                onChange={(v) => updateEdu(i, "start_date", v)}
+                placeholder="e.g. Aug 2018"
+              />
+              <MiniField
+                label="End Date"
+                value={edu.end_date}
+                onChange={(v) => updateEdu(i, "end_date", v)}
+                placeholder="e.g. May 2022"
+              />
+            </div>
+            <MiniTextarea
+              label="Description"
+              value={edu.description}
+              onChange={(v) => updateEdu(i, "description", v)}
+              rows={2}
+            />
+          </div>
+        ))}
+      </div>
+
+      {/* ---- Contact & Links ---- */}
+      <div className={styles.section}>
+        <h3 className={styles.sectionTitle}>🔗 Contact & Links</h3>
+        <Field
+          label="Contact Email"
+          name="contact_email"
+          value={form.contact_email}
+          onChange={onChange}
+          type="email"
+        />
         <div className={styles.row}>
-          <div className={styles.field}>
-            <label className={styles.label}>GitHub URL</label>
-            <input
-              className={styles.input}
-              name="github_url"
-              value={form.github_url}
-              onChange={handleChange}
-              placeholder="https://github.com/jane"
-            />
-          </div>
-          <div className={styles.field}>
-            <label className={styles.label}>Twitter URL</label>
-            <input
-              className={styles.input}
-              name="twitter_url"
-              value={form.twitter_url}
-              onChange={handleChange}
-              placeholder="https://twitter.com/jane"
-            />
-          </div>
+          <Field
+            label="LinkedIn URL"
+            name="linkedin_url"
+            value={form.linkedin_url}
+            onChange={onChange}
+            type="url"
+            placeholder="https://linkedin.com/in/…"
+          />
+          <Field
+            label="GitHub URL"
+            name="github_url"
+            value={form.github_url}
+            onChange={onChange}
+            type="url"
+            placeholder="https://github.com/…"
+          />
         </div>
+        <Field
+          label="Twitter / X URL"
+          name="twitter_url"
+          value={form.twitter_url}
+          onChange={onChange}
+          type="url"
+          placeholder="https://x.com/…"
+        />
       </div>
 
       <button type="submit" className={styles.submitBtn} disabled={submitting}>
-        {submitting ? "Saving…" : "Save Portfolio"}
+        {submitting
+          ? "Saving…"
+          : initialData
+            ? "Update Portfolio"
+            : "Create Portfolio"}
       </button>
     </form>
+  );
+}
+
+/* ======== Reusable field helpers ======== */
+
+function Field({
+  label,
+  name,
+  value,
+  onChange,
+  error,
+  hint,
+  type = "text",
+  placeholder,
+}) {
+  return (
+    <div className={styles.field}>
+      <label className={styles.label} htmlFor={name}>
+        {label}
+      </label>
+      <input
+        id={name}
+        name={name}
+        type={type}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        className={`${styles.input} ${error ? styles.inputError : ""}`}
+      />
+      {hint && !error && <span className={styles.hint}>{hint}</span>}
+      {error && <span className={styles.errorText}>{error}</span>}
+    </div>
+  );
+}
+
+function FieldTextarea({
+  label,
+  name,
+  value,
+  onChange,
+  rows = 3,
+  placeholder,
+}) {
+  return (
+    <div className={styles.field}>
+      <label className={styles.label} htmlFor={name}>
+        {label}
+      </label>
+      <textarea
+        id={name}
+        name={name}
+        value={value}
+        onChange={onChange}
+        rows={rows}
+        placeholder={placeholder}
+        className={styles.textarea}
+      />
+    </div>
+  );
+}
+
+function MiniField({ label, value, onChange, placeholder }) {
+  return (
+    <div className={styles.field}>
+      <label className={styles.miniLabel}>{label}</label>
+      <input
+        className={styles.input}
+        value={value || ""}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+      />
+    </div>
+  );
+}
+
+function MiniTextarea({ label, value, onChange, rows = 2 }) {
+  return (
+    <div className={styles.field}>
+      <label className={styles.miniLabel}>{label}</label>
+      <textarea
+        className={styles.textarea}
+        value={value || ""}
+        onChange={(e) => onChange(e.target.value)}
+        rows={rows}
+        placeholder="Optional description…"
+      />
+    </div>
   );
 }

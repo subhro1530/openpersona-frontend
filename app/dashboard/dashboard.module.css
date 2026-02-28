@@ -1,72 +1,188 @@
-/* Dashboard styles */
+/* Dashboard — premium dark theme */
 
 .page {
   max-width: var(--max-width);
   margin: 0 auto;
-  padding: 2rem 1.5rem;
+  padding: 2rem 1.5rem 4rem;
 }
 
-.header {
+/* Welcome banner */
+.welcome {
+  position: relative;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 2rem 2rem;
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+  animation: fadeInUp 0.5s ease both;
+}
+
+.welcomeGlow {
+  position: absolute;
+  top: -30%;
+  right: -5%;
+  width: 300px;
+  height: 200px;
+  background: radial-gradient(
+    circle,
+    rgba(124, 58, 237, 0.1) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+.welcomeInner {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 2rem;
   flex-wrap: wrap;
   gap: 1rem;
+  position: relative;
 }
 
-.title {
-  font-size: 1.75rem;
+.welcomeTitle {
+  font-family: var(--font-display);
+  font-size: 1.55rem;
   font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.welcomeName {
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.welcomeSub {
+  color: var(--text-secondary);
+  font-size: 0.92rem;
 }
 
 .createBtn {
-  padding: 0.65rem 1.5rem;
-  background: var(--color-primary);
-  color: #fff;
-  border: none;
-  border-radius: var(--radius-sm);
-  font-size: 0.95rem;
-  font-weight: 600;
-  text-decoration: none;
-  transition:
-    background 0.2s,
-    transform 0.1s;
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
+  padding: 0.7rem 1.6rem;
+  background: var(--gradient-primary);
+  color: #fff !important;
+  font-weight: 600;
+  font-size: 0.92rem;
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  transition:
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast);
+  box-shadow: 0 4px 16px rgba(124, 58, 237, 0.3);
+  white-space: nowrap;
 }
 
 .createBtn:hover {
-  background: var(--color-primary-dark);
-  text-decoration: none;
   transform: translateY(-1px);
+  box-shadow: 0 6px 24px rgba(124, 58, 237, 0.4);
+  text-decoration: none;
 }
 
+/* Stats row */
+.statsRow {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  animation: fadeInUp 0.5s 0.1s ease both;
+}
+
+.statCard {
+  flex: 1;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 1.2rem 1rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  transition: all var(--transition-fast);
+}
+
+.statCard:hover {
+  border-color: var(--border-active);
+}
+
+.statNum {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.personalNum {
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.businessNum {
+  background: linear-gradient(135deg, #06b6d4, #3b82f6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.statLabel {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Portfolio grid */
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 1.25rem;
 }
 
+/* Loader */
+.loader {
+  text-align: center;
+  padding: 4rem 0;
+  color: var(--text-muted);
+}
+
+/* Empty state */
 .empty {
   text-align: center;
-  padding: 4rem 1.5rem;
-  color: var(--color-text-secondary);
+  padding: 5rem 2rem;
+  animation: fadeIn 0.5s ease;
 }
 
 .emptyIcon {
-  font-size: 3rem;
+  font-size: 3.5rem;
   margin-bottom: 1rem;
 }
 
 .emptyTitle {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--color-text);
-  margin-bottom: 0.5rem;
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin-bottom: 0.4rem;
+  color: var(--text-primary);
 }
 
 .emptyDesc {
+  color: var(--text-secondary);
   margin-bottom: 1.5rem;
+}
+
+@media (max-width: 640px) {
+  .statsRow {
+    flex-direction: column;
+  }
+  .grid {
+    grid-template-columns: 1fr;
+  }
 }

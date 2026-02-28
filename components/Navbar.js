@@ -1,9 +1,5 @@
 "use client";
 
-/**
- * Navbar — site-wide navigation with auth-aware links.
- */
-
 import { useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
@@ -14,24 +10,32 @@ export default function Navbar() {
   const { isAuthenticated, user, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
 
+  const initial = (user?.username || user?.email || "U")[0].toUpperCase();
+
   return (
     <nav className={styles.nav}>
       <div className={styles.inner}>
-        {/* Logo */}
         <Link href={ROUTES.HOME} className={styles.logo}>
-          <span className={styles.logoIcon}>◈</span> OpenPersona
+          <span className={styles.logoIcon}>&#x25C8;</span>
+          <span className={styles.logoText}>OpenPersona</span>
         </Link>
 
-        {/* Hamburger (mobile) */}
         <button
           className={styles.hamburger}
           onClick={() => setMenuOpen((v) => !v)}
           aria-label="Toggle menu"
         >
-          {menuOpen ? "✕" : "☰"}
+          <span
+            className={`${styles.hamburgerLine} ${menuOpen ? styles.open : ""}`}
+          />
+          <span
+            className={`${styles.hamburgerLine} ${menuOpen ? styles.open : ""}`}
+          />
+          <span
+            className={`${styles.hamburgerLine} ${menuOpen ? styles.open : ""}`}
+          />
         </button>
 
-        {/* Links */}
         <ul
           className={`${styles.links} ${menuOpen ? styles.linksOpen : ""}`}
           onClick={() => setMenuOpen(false)}
@@ -43,16 +47,14 @@ export default function Navbar() {
                   Dashboard
                 </Link>
               </li>
-              <li>
-                <span className={styles.link} style={{ cursor: "default" }}>
+              <li className={styles.userInfo}>
+                <div className={styles.avatar}>{initial}</div>
+                <span className={styles.username}>
                   {user?.username || user?.email || "User"}
                 </span>
               </li>
               <li>
-                <button
-                  className={`${styles.btn} ${styles.btnGhost}`}
-                  onClick={logout}
-                >
+                <button className={styles.logoutBtn} onClick={logout}>
                   Logout
                 </button>
               </li>
@@ -65,10 +67,7 @@ export default function Navbar() {
                 </Link>
               </li>
               <li>
-                <Link
-                  href={ROUTES.REGISTER}
-                  className={`${styles.btn} ${styles.btnPrimary}`}
-                >
+                <Link href={ROUTES.REGISTER} className={styles.ctaBtn}>
                   Get Started
                 </Link>
               </li>

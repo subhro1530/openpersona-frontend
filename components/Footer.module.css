@@ -1,8 +1,8 @@
-/* Footer.module.css */
-
 .footer {
-  border-top: 1px solid var(--color-border);
-  background: var(--color-bg-secondary);
+  border-top: 1px solid var(--border-subtle);
+  background: rgba(10, 10, 26, 0.6);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
   padding: 2.5rem 1.5rem;
   margin-top: auto;
 }
@@ -18,13 +18,29 @@
 }
 
 .brand {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
   font-weight: 700;
   font-size: 1.1rem;
-  color: var(--color-primary);
+}
+
+.logoIcon {
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.logoText {
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .copy {
-  color: var(--color-text-muted);
+  color: var(--text-muted);
   font-size: 0.85rem;
 }
 
@@ -35,13 +51,13 @@
 }
 
 .link {
-  color: var(--color-text-secondary);
+  color: var(--text-muted);
   font-size: 0.85rem;
-  transition: color 0.2s;
+  transition: color var(--transition-fast);
 }
 
 .link:hover {
-  color: var(--color-primary);
+  color: var(--color-primary-light);
 }
 
 @media (max-width: 640px) {

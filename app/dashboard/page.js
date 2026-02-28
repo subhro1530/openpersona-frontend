@@ -1,11 +1,13 @@
 "use client";
 
 /**
- * Dashboard — list user's portfolios, with create / edit / delete actions.
+ * Dashboard — lists all user portfolios with stats banner.
+ * BUG FIX: Uses `p.id` (not `p._id`) for keys, delete handler, and list filtering.
  */
 
-import { useState, useEffect, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
+import { useAuth } from "@/context/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import PortfolioCard from "@/components/PortfolioCard";
 import { apiFetch } from "@/lib/api";
@@ -13,24 +15,25 @@ import { PORTFOLIO_ENDPOINTS, ROUTES } from "@/lib/constants";
 import { showToast } from "@/components/Toast";
 import styles from "./dashboard.module.css";
 
-export default function DashboardPage() {
-  return (
-    <ProtectedRoute>
-      <DashboardContent />
-    </ProtectedRoute>
-  );
-}
-
 function DashboardContent() {
+  const { user } = useAuth();
   const [portfolios, setPortfolios] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const fetchPortfolios = useCallback(async () => {
     try {
-      const res = await apiFetch(PORTFOLIO_ENDPOINTS.MY);
-      setPortfolios(res?.data?.portfolios ?? res?.data ?? []);
-    } catch (err) {
-      showToast(err.message || "Failed to load portfolios", "error");
+      const data = await apiFetch(PORTFOLIO_ENDPOINTS.MY);
+      setPortfolios(
+        Array.isArray(data)
+          ? data
+          : Array.isArray(data?.portfolios)
+            ? data.portfolios
+            : Array.isArray(data?.data)
+              ? data.data
+              : [],
+      );
+    } catch {
+      showToast("Failed to load portfolios", "error");
     } finally {
       setLoading(false);
     }
@@ -43,34 +46,75 @@ function DashboardContent() {
   const handleDelete = async (id) => {
     try {
       await apiFetch(PORTFOLIO_ENDPOINTS.BY_ID(id), { method: "DELETE" });
-      setPortfolios((prev) => prev.filter((p) => p._id !== id));
-      showToast("Portfolio deleted.", "success");
-    } catch (err) {
-      showToast(err.message || "Failed to delete portfolio", "error");
+      setPortfolios((prev) => prev.filter((p) => p.id !== id)); // ← FIX: was `p._id`
+      showToast("Portfolio deleted", "success");
+    } catch {
+      showToast("Delete failed", "error");
     }
   };
 
+  const personalCount = portfolios.filter(
+    (p) => p.category === "personal",
+  ).length;
+  const businessCount = portfolios.filter(
+    (p) => p.category === "business",
+  ).length;
+
   return (
     <div className={styles.page}>
-      {/* Header */}
-      <div className={styles.header}>
-        <h1 className={styles.title}>My Portfolios</h1>
-        <Link href={ROUTES.CREATE_PORTFOLIO} className={styles.createBtn}>
-          + Create New Portfolio
-        </Link>
+      {/* Welcome banner */}
+      <div className={styles.welcome}>
+        <div className={styles.welcomeGlow} />
+        <div className={styles.welcomeInner}>
+          <div>
+            <h1 className={styles.welcomeTitle}>
+              Welcome back,{" "}
+              <span className={styles.welcomeName}>
+                {user?.username || "there"}
+              </span>
+            </h1>
+            <p className={styles.welcomeSub}>
+              Manage and create your professional portfolios
+            </p>
+          </div>
+          <Link href={ROUTES.CREATE_PORTFOLIO} className={styles.createBtn}>
+            + New Portfolio
+          </Link>
+        </div>
       </div>
 
-      {/* Content */}
+      {/* Stats row */}
+      <div className={styles.statsRow}>
+        <div className={styles.statCard}>
+          <span className={styles.statNum}>{portfolios.length}</span>
+          <span className={styles.statLabel}>Total</span>
+        </div>
+        <div className={styles.statCard}>
+          <span className={`${styles.statNum} ${styles.personalNum}`}>
+            {personalCount}
+          </span>
+          <span className={styles.statLabel}>Personal</span>
+        </div>
+        <div className={styles.statCard}>
+          <span className={`${styles.statNum} ${styles.businessNum}`}>
+            {businessCount}
+          </span>
+          <span className={styles.statLabel}>Business</span>
+        </div>
+      </div>
+
+      {/* Portfolio grid */}
       {loading ? (
-        <div className="page-loading">
+        <div className={styles.loader}>
           <div className="spinner" />
+          <p>Loading portfolios…</p>
         </div>
       ) : portfolios.length === 0 ? (
         <div className={styles.empty}>
           <div className={styles.emptyIcon}>📂</div>
           <h2 className={styles.emptyTitle}>No portfolios yet</h2>
           <p className={styles.emptyDesc}>
-            Create your first portfolio and share it with the world.
+            Create your first portfolio to get started
           </p>
           <Link href={ROUTES.CREATE_PORTFOLIO} className={styles.createBtn}>
             + Create Portfolio
@@ -79,10 +123,22 @@ function DashboardContent() {
       ) : (
         <div className={styles.grid}>
           {portfolios.map((p) => (
-            <PortfolioCard key={p._id} portfolio={p} onDelete={handleDelete} />
+            <PortfolioCard
+              key={p.id} /* ← FIX: was `p._id` */
+              portfolio={p}
+              onDelete={handleDelete}
+            />
           ))}
         </div>
       )}
     </div>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <ProtectedRoute>
+      <DashboardContent />
+    </ProtectedRoute>
   );
 }
