@@ -9,7 +9,9 @@ import { ROUTES } from "@/lib/constants";
 import styles from "./PortfolioCard.module.css";
 
 export default function PortfolioCard({ portfolio, onDelete }) {
-  const { _id, title, subtitle, category, slug } = portfolio;
+  const { _id, title, subtitle, category } = portfolio;
+  const slug =
+    portfolio.slug || portfolio.portfolio_slug || portfolio._id || "";
 
   const handleDelete = () => {
     if (window.confirm("Are you sure you want to delete this portfolio?")) {

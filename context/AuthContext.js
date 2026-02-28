@@ -53,9 +53,11 @@ export function AuthProvider({ children }) {
   /** Attempt a silent refresh to restore the session after page reload. */
   const restoreSession = useCallback(async () => {
     try {
-      const refreshRes = await apiFetch(AUTH_ENDPOINTS.REFRESH, {
-        method: "POST",
-      });
+      const refreshRes = await apiFetch(
+        AUTH_ENDPOINTS.REFRESH,
+        { method: "POST" },
+        false, // skip auto-retry on 401 — we ARE the refresh call
+      );
 
       const newToken = refreshRes?.data?.accessToken;
       if (newToken) {
@@ -66,7 +68,7 @@ export function AuthProvider({ children }) {
         setUser(meRes?.data?.user ?? meRes?.data ?? null);
       }
     } catch {
-      // No valid session — that's fine
+      // No valid session — clear everything silently
       setUser(null);
       setToken(null);
       clearAccessToken();

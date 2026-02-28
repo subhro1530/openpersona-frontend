@@ -4,7 +4,7 @@
  * Login page — email + password authentication.
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
@@ -22,8 +22,13 @@ export default function LoginPage() {
   const [submitting, setSubmitting] = useState(false);
 
   // Redirect if already logged in
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.replace(ROUTES.DASHBOARD);
+    }
+  }, [isAuthenticated, router]);
+
   if (isAuthenticated) {
-    router.replace(ROUTES.DASHBOARD);
     return null;
   }
 
@@ -56,7 +61,20 @@ export default function LoginPage() {
       showToast("Welcome back!", "success");
       router.push(ROUTES.DASHBOARD);
     } catch (err) {
-      setServerError(err.message || "Login failed. Please try again.");
+      const fieldErrors = err.data?.errors;
+      if (Array.isArray(fieldErrors) && fieldErrors.length) {
+        const mapped = {};
+        fieldErrors.forEach((e) => {
+          if (e.field) mapped[e.field] = e.message;
+        });
+        if (Object.keys(mapped).length) {
+          setErrors(mapped);
+        } else {
+          setServerError(fieldErrors.map((e) => e.message || e.msg).join(", "));
+        }
+      } else {
+        setServerError(err.message || "Login failed. Please try again.");
+      }
     } finally {
       setSubmitting(false);
     }

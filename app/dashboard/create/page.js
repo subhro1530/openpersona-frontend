@@ -56,7 +56,15 @@ function CreateWizard() {
       showToast("Portfolio created successfully!", "success");
       router.push(ROUTES.DASHBOARD);
     } catch (err) {
-      showToast(err.message || "Failed to create portfolio", "error");
+      const fieldErrors = err.data?.errors;
+      if (Array.isArray(fieldErrors) && fieldErrors.length) {
+        const messages = fieldErrors
+          .map((e) => e.message || e.msg)
+          .filter(Boolean);
+        showToast(messages.join(" • ") || err.message, "error");
+      } else {
+        showToast(err.message || "Failed to create portfolio", "error");
+      }
     } finally {
       setSubmitting(false);
     }

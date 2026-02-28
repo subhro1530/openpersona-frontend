@@ -4,7 +4,7 @@
  * Register page — create a new account.
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
@@ -22,8 +22,13 @@ export default function RegisterPage() {
   const [submitting, setSubmitting] = useState(false);
 
   // Redirect if already logged in
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.replace(ROUTES.DASHBOARD);
+    }
+  }, [isAuthenticated, router]);
+
   if (isAuthenticated) {
-    router.replace(ROUTES.DASHBOARD);
     return null;
   }
 
@@ -43,8 +48,12 @@ export default function RegisterPage() {
     else if (!/\S+@\S+\.\S+/.test(form.email))
       errs.email = "Enter a valid email";
     if (!form.password) errs.password = "Password is required";
-    else if (form.password.length < 6)
-      errs.password = "Password must be at least 6 characters";
+    else if (form.password.length < 8)
+      errs.password = "Password must be at least 8 characters";
+    else if (!/[a-zA-Z]/.test(form.password))
+      errs.password = "Password must contain at least one letter";
+    else if (!/[0-9]/.test(form.password))
+      errs.password = "Password must contain at least one number";
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -61,7 +70,20 @@ export default function RegisterPage() {
       showToast("Account created! Welcome to OpenPersona.", "success");
       router.push(ROUTES.DASHBOARD);
     } catch (err) {
-      setServerError(err.message || "Registration failed. Please try again.");
+      const fieldErrors = err.data?.errors;
+      if (Array.isArray(fieldErrors) && fieldErrors.length) {
+        const mapped = {};
+        fieldErrors.forEach((e) => {
+          if (e.field) mapped[e.field] = e.message;
+        });
+        if (Object.keys(mapped).length) {
+          setErrors(mapped);
+        } else {
+          setServerError(fieldErrors.map((e) => e.message || e.msg).join(", "));
+        }
+      } else {
+        setServerError(err.message || "Registration failed. Please try again.");
+      }
     } finally {
       setSubmitting(false);
     }
@@ -131,6 +153,19 @@ export default function RegisterPage() {
             {errors.password && (
               <span className={styles.errorText}>{errors.password}</span>
             )}
+            <ul className={styles.passwordHints}>
+              <li className={form.password.length >= 8 ? styles.hintMet : ""}>
+                At least 8 characters
+              </li>
+              <li
+                className={/[a-zA-Z]/.test(form.password) ? styles.hintMet : ""}
+              >
+                At least one letter
+              </li>
+              <li className={/[0-9]/.test(form.password) ? styles.hintMet : ""}>
+                At least one number
+              </li>
+            </ul>
           </div>
 
           <button
