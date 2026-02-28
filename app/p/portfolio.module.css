@@ -1,0 +1,273 @@
+/* Public portfolio view */
+
+.page {
+  min-height: 100vh;
+}
+
+/* --- Shared portfolio header --- */
+.headerSection {
+  padding: 4rem 1.5rem 3rem;
+  text-align: center;
+  background: linear-gradient(
+    135deg,
+    var(--color-primary),
+    var(--color-secondary)
+  );
+  color: #fff;
+}
+
+.headerTitle {
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+}
+
+.headerSubtitle {
+  font-size: 1.1rem;
+  opacity: 0.9;
+}
+
+/* --- Content area --- */
+.content {
+  max-width: 900px;
+  margin: -2rem auto 0;
+  padding: 0 1.5rem 3rem;
+}
+
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--shadow-md);
+}
+
+.cardTitle {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/* --- Personal portfolio --- */
+.name {
+  font-size: 2rem;
+  font-weight: 800;
+}
+
+.headline {
+  font-size: 1.15rem;
+  opacity: 0.9;
+  margin-top: 0.25rem;
+}
+
+.about {
+  line-height: 1.8;
+  color: var(--color-text-secondary);
+}
+
+.skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.skill {
+  padding: 0.3rem 0.85rem;
+  background: rgba(79, 70, 229, 0.1);
+  color: var(--color-primary);
+  border-radius: 9999px;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.experienceItem,
+.educationItem {
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.experienceItem:last-child,
+.educationItem:last-child {
+  border-bottom: none;
+}
+
+.expRole {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.expCompany {
+  color: var(--color-primary);
+  font-size: 0.9rem;
+}
+
+.expDates {
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  margin-top: 0.15rem;
+}
+
+.expDesc {
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+  margin-top: 0.35rem;
+}
+
+.eduDegree {
+  font-weight: 600;
+}
+
+.eduInstitution {
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+}
+
+.eduYear {
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+}
+
+.contactLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.contactLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.45rem 1rem;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--color-text);
+  text-decoration: none;
+  transition: background 0.2s;
+}
+
+.contactLink:hover {
+  background: var(--color-border);
+  text-decoration: none;
+}
+
+/* --- Business portfolio --- */
+.businessName {
+  font-size: 2rem;
+  font-weight: 800;
+}
+
+.tagline {
+  opacity: 0.9;
+  font-size: 1.15rem;
+  margin-top: 0.25rem;
+}
+
+.description {
+  line-height: 1.8;
+  color: var(--color-text-secondary);
+}
+
+.servicesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1rem;
+}
+
+.serviceCard {
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+}
+
+.serviceName {
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: 0.35rem;
+}
+
+.serviceDesc {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.servicePrice {
+  font-weight: 700;
+  color: var(--color-primary);
+  font-size: 0.95rem;
+}
+
+.testimonialItem {
+  padding: 1.25rem 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.testimonialItem:last-child {
+  border-bottom: none;
+}
+
+.testimonialText {
+  font-style: italic;
+  color: var(--color-text-secondary);
+  line-height: 1.7;
+  margin-bottom: 0.5rem;
+}
+
+.testimonialAuthor {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.testimonialRole {
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+}
+
+.contactInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.contactRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+}
+
+.contactLabel {
+  font-weight: 600;
+  color: var(--color-text);
+  min-width: 80px;
+}
+
+.notFound {
+  text-align: center;
+  padding: 6rem 1.5rem;
+}
+
+.notFoundTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.notFoundDesc {
+  color: var(--color-text-secondary);
+}
+
+@media (prefers-color-scheme: dark) {
+  .skill {
+    background: rgba(99, 102, 241, 0.2);
+  }
+}

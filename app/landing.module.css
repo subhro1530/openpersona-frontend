@@ -1,0 +1,176 @@
+/* Landing page styles */
+
+.hero {
+  min-height: calc(100vh - var(--nav-height) - 200px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 4rem 1.5rem;
+}
+
+.heroInner {
+  max-width: 700px;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.35rem 1rem;
+  background: rgba(79, 70, 229, 0.1);
+  color: var(--color-primary);
+  font-size: 0.82rem;
+  font-weight: 600;
+  border-radius: 9999px;
+  margin-bottom: 1.5rem;
+}
+
+.title {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 800;
+  line-height: 1.15;
+  color: var(--color-text);
+  margin-bottom: 1.25rem;
+}
+
+.highlight {
+  background: linear-gradient(
+    135deg,
+    var(--color-primary),
+    var(--color-secondary)
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.subtitle {
+  font-size: 1.15rem;
+  color: var(--color-text-secondary);
+  max-width: 520px;
+  margin: 0 auto 2.5rem;
+  line-height: 1.7;
+}
+
+.ctas {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.ctaPrimary,
+.ctaSecondary {
+  padding: 0.8rem 2rem;
+  border-radius: var(--radius-sm);
+  font-size: 1rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition:
+    background 0.2s,
+    transform 0.1s;
+  display: inline-block;
+}
+
+.ctaPrimary {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.ctaPrimary:hover {
+  background: var(--color-primary-dark);
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+
+.ctaSecondary {
+  background: transparent;
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+}
+
+.ctaSecondary:hover {
+  background: var(--color-bg-secondary);
+  text-decoration: none;
+}
+
+/* Features section */
+.features {
+  padding: 5rem 1.5rem;
+  background: var(--color-bg-secondary);
+}
+
+.featuresInner {
+  max-width: var(--max-width);
+  margin: 0 auto;
+}
+
+.featuresTitle {
+  text-align: center;
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+}
+
+.featuresSubtitle {
+  text-align: center;
+  color: var(--color-text-secondary);
+  margin-bottom: 3rem;
+  font-size: 1.05rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.5rem;
+}
+
+.featureCard {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 2rem 1.5rem;
+  text-align: center;
+  transition:
+    box-shadow 0.2s,
+    transform 0.2s;
+}
+
+.featureCard:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-3px);
+}
+
+.featureIcon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.featureTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.featureDesc {
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+/* CTA Banner */
+.ctaBanner {
+  padding: 5rem 1.5rem;
+  text-align: center;
+}
+
+.ctaBannerTitle {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.ctaBannerDesc {
+  color: var(--color-text-secondary);
+  margin-bottom: 2rem;
+  font-size: 1.05rem;
+}

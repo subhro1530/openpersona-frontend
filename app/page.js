@@ -1,66 +1,117 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+import Link from "next/link";
+import { ROUTES } from "@/lib/constants";
+import styles from "./landing.module.css";
 
+/**
+ * Landing page — public home with hero, features, and CTA.
+ * This is a server component (no 'use client').
+ */
 export default function Home() {
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className={styles.intro}>
-          <h1>To get started, edit the page.js file.</h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <>
+      {/* Hero */}
+      <section className={styles.hero}>
+        <div className={styles.heroInner}>
+          <span className={styles.badge}>✨ Build Your Online Presence</span>
+          <h1 className={styles.title}>
+            Create <span className={styles.highlight}>Stunning Portfolios</span>{" "}
+            in Minutes
+          </h1>
+          <p className={styles.subtitle}>
+            OpenPersona helps you craft beautiful personal and business
+            portfolios with zero coding. Pick a theme, fill in your details, and
+            share your unique link with the world.
           </p>
+          <div className={styles.ctas}>
+            <Link href={ROUTES.REGISTER} className={styles.ctaPrimary}>
+              Get Started — Free
+            </Link>
+            <Link href={ROUTES.LOGIN} className={styles.ctaSecondary}>
+              Sign In
+            </Link>
+          </div>
         </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </section>
+
+      {/* Features */}
+      <section className={styles.features}>
+        <div className={styles.featuresInner}>
+          <h2 className={styles.featuresTitle}>Why OpenPersona?</h2>
+          <p className={styles.featuresSubtitle}>
+            Everything you need to stand out, built right in.
+          </p>
+
+          <div className={styles.grid}>
+            <div className={styles.featureCard}>
+              <div className={styles.featureIcon}>🎨</div>
+              <h3 className={styles.featureTitle}>Beautiful Themes</h3>
+              <p className={styles.featureDesc}>
+                Choose from curated themes for personal and business portfolios,
+                each designed for maximum impact.
+              </p>
+            </div>
+
+            <div className={styles.featureCard}>
+              <div className={styles.featureIcon}>⚡</div>
+              <h3 className={styles.featureTitle}>Lightning Fast</h3>
+              <p className={styles.featureDesc}>
+                Create and publish your portfolio in under 5 minutes. No complex
+                setup, no coding required.
+              </p>
+            </div>
+
+            <div className={styles.featureCard}>
+              <div className={styles.featureIcon}>🔗</div>
+              <h3 className={styles.featureTitle}>Shareable Link</h3>
+              <p className={styles.featureDesc}>
+                Get a unique, SEO-friendly public URL for your portfolio. Share
+                it on social media, resumes, or business cards.
+              </p>
+            </div>
+
+            <div className={styles.featureCard}>
+              <div className={styles.featureIcon}>📱</div>
+              <h3 className={styles.featureTitle}>Responsive Design</h3>
+              <p className={styles.featureDesc}>
+                Every portfolio looks great on desktop, tablet, and mobile
+                devices right out of the box.
+              </p>
+            </div>
+
+            <div className={styles.featureCard}>
+              <div className={styles.featureIcon}>🛡️</div>
+              <h3 className={styles.featureTitle}>Secure & Private</h3>
+              <p className={styles.featureDesc}>
+                Your data is safe with industry-standard encryption. Only you
+                control what the world sees.
+              </p>
+            </div>
+
+            <div className={styles.featureCard}>
+              <div className={styles.featureIcon}>🏢</div>
+              <h3 className={styles.featureTitle}>Personal & Business</h3>
+              <p className={styles.featureDesc}>
+                Whether you&apos;re a freelancer or a company, we have dedicated
+                portfolio types tailored to your needs.
+              </p>
+            </div>
+          </div>
         </div>
-      </main>
-    </div>
+      </section>
+
+      {/* Bottom CTA */}
+      <section className={styles.ctaBanner}>
+        <h2 className={styles.ctaBannerTitle}>
+          Ready to build your portfolio?
+        </h2>
+        <p className={styles.ctaBannerDesc}>
+          Join thousands of professionals showcasing their work with
+          OpenPersona.
+        </p>
+        <Link href={ROUTES.REGISTER} className={styles.ctaPrimary}>
+          Create Your Portfolio
+        </Link>
+      </section>
+    </>
   );
 }

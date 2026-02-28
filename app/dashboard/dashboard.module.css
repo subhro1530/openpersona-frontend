@@ -1,0 +1,72 @@
+/* Dashboard styles */
+
+.page {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.title {
+  font-size: 1.75rem;
+  font-weight: 700;
+}
+
+.createBtn {
+  padding: 0.65rem 1.5rem;
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition:
+    background 0.2s,
+    transform 0.1s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.createBtn:hover {
+  background: var(--color-primary-dark);
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.25rem;
+}
+
+.empty {
+  text-align: center;
+  padding: 4rem 1.5rem;
+  color: var(--color-text-secondary);
+}
+
+.emptyIcon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.emptyTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 0.5rem;
+}
+
+.emptyDesc {
+  margin-bottom: 1.5rem;
+}
