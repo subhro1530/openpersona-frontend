@@ -97,20 +97,22 @@ export default function ThemeSelector({ category, value, onChange }) {
     (async () => {
       setLoading(true);
       try {
-        const data = await apiFetch(THEME_ENDPOINTS.BY_CATEGORY(category));
-        const raw = Array.isArray(data)
-          ? data
-          : Array.isArray(data?.themes)
-            ? data.themes
-            : Array.isArray(data?.data)
-              ? data.data
-              : [];
+        const res = await apiFetch(THEME_ENDPOINTS.BY_CATEGORY(category));
+        const raw = Array.isArray(res?.data?.themes)
+          ? res.data.themes
+          : Array.isArray(res?.data)
+            ? res.data
+            : Array.isArray(res?.themes)
+              ? res.themes
+              : Array.isArray(res)
+                ? res
+                : [];
         if (!cancelled) {
           if (Array.isArray(raw) && raw.length > 0) {
             setThemes(raw);
             setUsingBuiltIn(false);
             if (!value) {
-              const firstId = raw[0]._id || raw[0].id;
+              const firstId = raw[0].id || raw[0]._id;
               if (firstId) onChange(firstId, false);
             }
           } else {

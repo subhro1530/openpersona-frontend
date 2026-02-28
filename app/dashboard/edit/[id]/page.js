@@ -30,8 +30,8 @@ function EditContent({ id }) {
     (async () => {
       try {
         // FIX: use GET_BY_ID  →  GET /api/portfolio/id/:id
-        const data = await apiFetch(PORTFOLIO_ENDPOINTS.GET_BY_ID(id));
-        const p = data.portfolio ?? data;
+        const res = await apiFetch(PORTFOLIO_ENDPOINTS.GET_BY_ID(id));
+        const p = res?.data?.portfolio ?? res?.data ?? res?.portfolio ?? res;
         setPortfolio(p);
       } catch {
         showToast("Failed to load portfolio", "error");
@@ -46,7 +46,7 @@ function EditContent({ id }) {
     try {
       await apiFetch(PORTFOLIO_ENDPOINTS.BY_ID(id), {
         method: "PUT",
-        body: JSON.stringify(formData),
+        body: formData,
       });
       showToast("Portfolio updated!", "success");
       router.push(ROUTES.DASHBOARD);

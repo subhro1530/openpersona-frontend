@@ -4,8 +4,8 @@
  * BusinessPortfolioForm — form fields for business portfolios.
  *
  * Backend expects:
- *   services     → string[]           e.g. ["Web Dev","Consulting"]
- *   testimonials → object[]           e.g. [{name,role,quote}]
+ *   services     → object[]  e.g. [{name,description,price}]
+ *   testimonials → object[]  e.g. [{author,role,text}]
  *
  * Has dynamic + buttons to add entries, and × to remove them.
  */
@@ -13,7 +13,8 @@
 import { useState } from "react";
 import styles from "./Form.module.css";
 
-const EMPTY_TESTIMONIAL = { name: "", role: "", quote: "" };
+const EMPTY_SERVICE = { name: "", description: "", price: "" };
+const EMPTY_TESTIMONIAL = { author: "", role: "", text: "" };
 
 function initForm(initialData) {
   const d = initialData || {};
@@ -33,19 +34,24 @@ function initForm(initialData) {
 
 function initServices(initialData) {
   const s = initialData?.services;
-  if (Array.isArray(s)) return s;
-  if (typeof s === "string" && s.trim())
-    return s
-      .split(",")
-      .map((x) => x.trim())
-      .filter(Boolean);
+  if (Array.isArray(s) && s.length)
+    return s.map((item) =>
+      typeof item === "string"
+        ? { ...EMPTY_SERVICE, name: item }
+        : { ...EMPTY_SERVICE, ...item },
+    );
   return [];
 }
 
 function initTestimonials(initialData) {
   const t = initialData?.testimonials;
   if (Array.isArray(t) && t.length)
-    return t.map((item) => ({ ...EMPTY_TESTIMONIAL, ...item }));
+    return t.map((item) => ({
+      ...EMPTY_TESTIMONIAL,
+      author: item.author || item.name || "",
+      role: item.role || "",
+      text: item.text || item.quote || "",
+    }));
   return [];
 }
 
@@ -56,7 +62,6 @@ export default function BusinessPortfolioForm({
 }) {
   const [form, setForm] = useState(() => initForm(initialData));
   const [services, setServices] = useState(() => initServices(initialData));
-  const [serviceInput, setServiceInput] = useState("");
   const [testimonials, setTestimonials] = useState(() =>
     initTestimonials(initialData),
   );
@@ -68,20 +73,14 @@ export default function BusinessPortfolioForm({
     if (errors[name]) setErrors((p) => ({ ...p, [name]: "" }));
   };
 
-  /* ---- Services (tags) ---- */
-  const addService = () => {
-    const s = serviceInput.trim();
-    if (s && !services.includes(s)) setServices((p) => [...p, s]);
-    setServiceInput("");
-  };
+  /* ---- Services (dynamic cards) ---- */
+  const addService = () => setServices((p) => [...p, { ...EMPTY_SERVICE }]);
   const removeService = (i) =>
     setServices((p) => p.filter((_, idx) => idx !== i));
-  const handleServiceKey = (e) => {
-    if (e.key === "Enter" || e.key === ",") {
-      e.preventDefault();
-      addService();
-    }
-  };
+  const updateService = (i, field, value) =>
+    setServices((p) =>
+      p.map((item, idx) => (idx === i ? { ...item, [field]: value } : item)),
+    );
 
   /* ---- Testimonials ---- */
   const addTestimonial = () =>
@@ -113,8 +112,8 @@ export default function BusinessPortfolioForm({
     try {
       await onSubmit({
         ...form,
-        services,
-        testimonials: testimonials.filter((t) => t.quote || t.name),
+        services: services.filter((s) => s.name),
+        testimonials: testimonials.filter((t) => t.text || t.author),
       });
     } catch (err) {
       const fieldErrors = err?.data?.errors;
@@ -187,44 +186,53 @@ export default function BusinessPortfolioForm({
         />
       </div>
 
-      {/* ---- Services (tags) ---- */}
+      {/* ---- Services (dynamic cards) ---- */}
       <div className={styles.section}>
         <div className={styles.sectionHeader}>
           <h3 className={styles.sectionTitle}>⚙️ Services</h3>
-          <span className={styles.sectionCount}>{services.length} added</span>
-        </div>
-        <div className={styles.tagInputRow}>
-          <input
-            className={styles.input}
-            value={serviceInput}
-            onChange={(e) => setServiceInput(e.target.value)}
-            onKeyDown={handleServiceKey}
-            placeholder="Type a service and press Enter"
-          />
-          <button
-            type="button"
-            className={styles.addBtnSmall}
-            onClick={addService}
-          >
-            + Add
+          <button type="button" className={styles.addBtn} onClick={addService}>
+            + Add Service
           </button>
         </div>
-        {services.length > 0 && (
-          <div className={styles.tags}>
-            {services.map((s, i) => (
-              <span key={i} className={styles.tag}>
-                {s}
-                <button
-                  type="button"
-                  className={styles.tagRemove}
-                  onClick={() => removeService(i)}
-                >
-                  ×
-                </button>
-              </span>
-            ))}
-          </div>
+        {services.length === 0 && (
+          <p className={styles.emptyHint}>
+            No services added yet. Click the button above to add one.
+          </p>
         )}
+        {services.map((svc, i) => (
+          <div key={i} className={styles.dynamicCard}>
+            <button
+              type="button"
+              className={styles.cardRemove}
+              onClick={() => removeService(i)}
+              title="Remove"
+            >
+              ×
+            </button>
+            <div className={styles.cardLabel}>Service {i + 1}</div>
+            <div className={styles.row}>
+              <MiniField
+                label="Service Name"
+                value={svc.name}
+                onChange={(v) => updateService(i, "name", v)}
+                placeholder="e.g. Web Development"
+              />
+              <MiniField
+                label="Price"
+                value={svc.price}
+                onChange={(v) => updateService(i, "price", v)}
+                placeholder="e.g. $5000"
+              />
+            </div>
+            <MiniTextarea
+              label="Description"
+              value={svc.description}
+              onChange={(v) => updateService(i, "description", v)}
+              rows={2}
+              placeholder="Describe this service…"
+            />
+          </div>
+        ))}
       </div>
 
       {/* ---- Testimonials (dynamic cards) ---- */}
@@ -257,9 +265,9 @@ export default function BusinessPortfolioForm({
             <div className={styles.cardLabel}>Testimonial {i + 1}</div>
             <div className={styles.row}>
               <MiniField
-                label="Person Name"
-                value={t.name}
-                onChange={(v) => updateTestimonial(i, "name", v)}
+                label="Author"
+                value={t.author}
+                onChange={(v) => updateTestimonial(i, "author", v)}
                 placeholder="e.g. John Smith"
               />
               <MiniField
@@ -271,8 +279,8 @@ export default function BusinessPortfolioForm({
             </div>
             <MiniTextarea
               label="Quote"
-              value={t.quote}
-              onChange={(v) => updateTestimonial(i, "quote", v)}
+              value={t.text}
+              onChange={(v) => updateTestimonial(i, "text", v)}
               rows={2}
               placeholder="What they said about you…"
             />

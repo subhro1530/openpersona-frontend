@@ -5,8 +5,8 @@
  *
  * Backend expects:
  *   skills      → string[]           e.g. ["React","Node.js"]
- *   experience  → object[]           e.g. [{title,company,start_date,end_date,description}]
- *   education   → object[]           e.g. [{degree,institution,start_date,end_date,description}]
+ *   experience  → object[]           e.g. [{company,role,from,to,description}]
+ *   education   → object[]           e.g. [{institution,degree,year}]
  *
  * Has dynamic + buttons to add entries, and × to remove them.
  */
@@ -15,18 +15,16 @@ import { useState } from "react";
 import styles from "./Form.module.css";
 
 const EMPTY_EXP = {
-  title: "",
   company: "",
-  start_date: "",
-  end_date: "",
+  role: "",
+  from: "",
+  to: "",
   description: "",
 };
 const EMPTY_EDU = {
-  degree: "",
   institution: "",
-  start_date: "",
-  end_date: "",
-  description: "",
+  degree: "",
+  year: "",
 };
 
 function initForm(initialData) {
@@ -136,7 +134,7 @@ export default function PersonalPortfolioForm({
       await onSubmit({
         ...form,
         skills,
-        experience: experience.filter((x) => x.title || x.company),
+        experience: experience.filter((x) => x.role || x.company),
         education: education.filter((x) => x.degree || x.institution),
       });
     } catch (err) {
@@ -276,9 +274,9 @@ export default function PersonalPortfolioForm({
             <div className={styles.cardLabel}>Experience {i + 1}</div>
             <div className={styles.row}>
               <MiniField
-                label="Job Title"
-                value={exp.title}
-                onChange={(v) => updateExp(i, "title", v)}
+                label="Role / Job Title"
+                value={exp.role}
+                onChange={(v) => updateExp(i, "role", v)}
                 placeholder="e.g. Software Engineer"
               />
               <MiniField
@@ -290,15 +288,15 @@ export default function PersonalPortfolioForm({
             </div>
             <div className={styles.row}>
               <MiniField
-                label="Start Date"
-                value={exp.start_date}
-                onChange={(v) => updateExp(i, "start_date", v)}
+                label="From"
+                value={exp.from}
+                onChange={(v) => updateExp(i, "from", v)}
                 placeholder="e.g. Jan 2022"
               />
               <MiniField
-                label="End Date"
-                value={exp.end_date}
-                onChange={(v) => updateExp(i, "end_date", v)}
+                label="To"
+                value={exp.to}
+                onChange={(v) => updateExp(i, "to", v)}
                 placeholder="Present"
               />
             </div>
@@ -350,25 +348,11 @@ export default function PersonalPortfolioForm({
                 placeholder="e.g. MIT"
               />
             </div>
-            <div className={styles.row}>
-              <MiniField
-                label="Start Date"
-                value={edu.start_date}
-                onChange={(v) => updateEdu(i, "start_date", v)}
-                placeholder="e.g. Aug 2018"
-              />
-              <MiniField
-                label="End Date"
-                value={edu.end_date}
-                onChange={(v) => updateEdu(i, "end_date", v)}
-                placeholder="e.g. May 2022"
-              />
-            </div>
-            <MiniTextarea
-              label="Description"
-              value={edu.description}
-              onChange={(v) => updateEdu(i, "description", v)}
-              rows={2}
+            <MiniField
+              label="Year"
+              value={edu.year}
+              onChange={(v) => updateEdu(i, "year", v)}
+              placeholder="e.g. 2025"
             />
           </div>
         ))}

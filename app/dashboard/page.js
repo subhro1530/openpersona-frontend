@@ -22,16 +22,17 @@ function DashboardContent() {
 
   const fetchPortfolios = useCallback(async () => {
     try {
-      const data = await apiFetch(PORTFOLIO_ENDPOINTS.MY);
-      setPortfolios(
-        Array.isArray(data)
-          ? data
-          : Array.isArray(data?.portfolios)
-            ? data.portfolios
-            : Array.isArray(data?.data)
-              ? data.data
-              : [],
-      );
+      const res = await apiFetch(PORTFOLIO_ENDPOINTS.MY);
+      const list = Array.isArray(res?.data?.portfolios)
+        ? res.data.portfolios
+        : Array.isArray(res?.data)
+          ? res.data
+          : Array.isArray(res?.portfolios)
+            ? res.portfolios
+            : Array.isArray(res)
+              ? res
+              : [];
+      setPortfolios(list);
     } catch {
       showToast("Failed to load portfolios", "error");
     } finally {
